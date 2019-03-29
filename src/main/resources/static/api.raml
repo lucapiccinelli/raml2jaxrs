@@ -1,0 +1,121 @@
+#%RAML 1.0
+title: g3 Bowling game app
+version: v1
+baseUri: api/{version}
+
+types:
+  ResourceCreated:
+    type: object
+    description: The kind of information returned when a new resource is created
+    properties:
+      type: string
+      id:
+        type: number
+        required: false
+
+  GameCreated:
+    type: ResourceCreated
+    properties:
+      type:
+        type: string
+        pattern: game
+
+  Game:
+    type: GameCreated
+    properties:
+      attributes:
+        type: object
+        properties:
+          total: integer
+      relationships:
+        type: object
+        properties:
+          data:
+            type: FrameCreated[]
+
+  FrameCreated:
+    type: ResourceCreated
+    properties:
+      type:
+        type: string
+        pattern: frame
+
+  Frame:
+    type: FrameCreated
+    properties:
+      attributes:
+        type: object
+        properties:
+          value: integer
+          rolls:
+            type: Roll[]
+          type:
+            type: string
+            pattern: standard|spare|strike
+
+  RollCreated:
+    type: ResourceCreated
+    properties:
+      type:
+        type: string
+        pattern: roll
+
+  Roll:
+    type: RollCreated
+    properties:
+      attributes:
+        type: object
+        properties:
+          value: integer
+
+
+/game:
+  description: game handling
+  post:
+    description: Create a new game
+    responses:
+      201:
+        body:
+          application/vnd.api+json:
+            type: object
+            properties:
+              data:
+                type: GameCreated
+  get:
+    queryParameters:
+      include:
+        type: string
+
+    responses:
+      200:
+        body:
+          application/vnd.api+json:
+            type: object
+            properties:
+              data:
+                type: Game
+              included:
+                type: Frame[]
+      204:
+        description: You don't have any game running
+
+/roll:
+  post:
+    description: Send roll value
+    body:
+      application/vnd.api+json:
+        type: GameCreated
+        properties:
+          attributes:
+            type: object
+            properties:
+              rollValue: integer
+
+    responses:
+      201:
+        body:
+          application/vnd.api+json:
+            type: object
+            properties:
+              data:
+                type: RollCreated
